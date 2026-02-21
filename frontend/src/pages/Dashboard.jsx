@@ -16,7 +16,8 @@ const Dashboard = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [userFilter, setUserFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
     const [usersList, setUsersList] = useState([]);
 
     // Modal state
@@ -151,8 +152,21 @@ const Dashboard = () => {
     const filteredTasks = tasks.filter((task) => {
         const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             task.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-        return matchesSearch && matchesStatus;
+
+        // Match priority
+        const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+
+        // Match user (Admin only)
+        let matchesUser = true;
+        if (user?.role === 'admin' && userFilter !== 'all') {
+            if (userFilter === 'unassigned') {
+                matchesUser = !task.assignedTo || task.assignedTo.length === 0;
+            } else {
+                matchesUser = task.assignedTo?.some(u => (u._id || u) === userFilter);
+            }
+        }
+
+        return matchesSearch && matchesPriority && matchesUser;
     });
 
     return (
@@ -195,17 +209,31 @@ const Dashboard = () => {
                         className="input-field pl-10 bg-background/50 border-gray-300 dark:border-gray-700/50"
                     />
                 </div>
+                {user?.role === 'admin' && (
+                    <div className="sm:w-48">
+                        <select
+                            value={userFilter}
+                            onChange={(e) => setUserFilter(e.target.value)}
+                            className="input-field bg-background/50 border-gray-300 dark:border-gray-700/50 appearance-none"
+                        >
+                            <option value="all">All Users</option>
+                            <option value="unassigned">Unassigned</option>
+                            {usersList.map((u) => (
+                                <option key={u._id} value={u._id}>{u.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 <div className="sm:w-48">
                     <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        value={priorityFilter}
+                        onChange={(e) => setPriorityFilter(e.target.value)}
                         className="input-field bg-background/50 border-gray-300 dark:border-gray-700/50 appearance-none"
                     >
-                        <option value="all">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending-approval">Requests</option>
+                        <option value="all">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
                     </select>
                 </div>
             </div>

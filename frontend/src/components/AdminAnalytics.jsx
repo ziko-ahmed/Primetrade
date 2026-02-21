@@ -37,11 +37,11 @@ const AdminAnalytics = () => {
     if (user?.role !== 'admin' || loading || !stats) return null;
 
     const statCards = [
-        { label: 'Total Tasks', value: stats.totalTasks, icon: BarChart3, bg: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', valueColor: 'text-blue-700' },
-        { label: 'Completed', value: stats.completedTasks, icon: CheckCircle, bg: 'bg-emerald-50 border-emerald-200', iconColor: 'text-emerald-600', valueColor: 'text-emerald-700' },
-        { label: 'In Progress', value: stats.inProgressTasks, icon: PlayCircle, bg: 'bg-violet-50 border-violet-200', iconColor: 'text-violet-600', valueColor: 'text-violet-700' },
-        { label: 'Pending', value: stats.pendingTasks, icon: Clock, bg: 'bg-amber-50 border-amber-200', iconColor: 'text-amber-600', valueColor: 'text-amber-700' },
-        { label: 'Requests', value: stats.pendingApprovalTasks, icon: AlertCircle, bg: 'bg-rose-50 border-rose-200', iconColor: 'text-rose-600', valueColor: 'text-rose-700' },
+        { label: 'Total Tasks', value: stats.totalTasks, icon: BarChart3, bg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20', iconColor: 'text-blue-600 dark:text-blue-400', valueColor: 'text-blue-700 dark:text-blue-400' },
+        { label: 'Completed', value: stats.completedTasks, icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20', iconColor: 'text-emerald-600 dark:text-emerald-400', valueColor: 'text-emerald-700 dark:text-emerald-400' },
+        { label: 'In Progress', value: stats.inProgressTasks, icon: PlayCircle, bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20', iconColor: 'text-violet-600 dark:text-violet-400', valueColor: 'text-violet-700 dark:text-violet-400' },
+        { label: 'Pending', value: stats.pendingTasks, icon: Clock, bg: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20', iconColor: 'text-amber-600 dark:text-amber-400', valueColor: 'text-amber-700 dark:text-amber-400' },
+        { label: 'Requests', value: stats.pendingApprovalTasks, icon: AlertCircle, bg: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20', iconColor: 'text-rose-600 dark:text-rose-400', valueColor: 'text-rose-700 dark:text-rose-400' },
     ];
 
     return (
