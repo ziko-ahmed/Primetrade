@@ -1,0 +1,19 @@
+{
+    "name": "primetrade-assignment",
+    "version": "1.0.0",
+    "description": "Full-stack application for Primetrade Assignment",
+    "main": "backend/server.js",
+    "scripts": {
+        "start": "node backend/server.js",
+        "server": "npm run dev --prefix backend",
+        "client": "npm run dev --prefix frontend",
+        "dev": "concurrently \"npm run server\" \"npm run client\"",
+        "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+        "render-postbuild": "npm run build"
+    },
+    "author": "Ziko",
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
