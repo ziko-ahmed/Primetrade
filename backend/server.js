@@ -83,6 +83,11 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 
+// Health check endpoint for Cron jobs (Uptime monitoring)
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Serve frontend in production (if built locally)
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
