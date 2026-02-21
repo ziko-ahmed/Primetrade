@@ -21,7 +21,7 @@ Because Primetrade enforces strict role hierarchies, **the Admin portal is visua
 ### 1. Admin Portal
 - **URL**: `https://primetrade-ua5d.onrender.com/admin/login`
 - **Email**: `admin@primetrade.com`
-- **Password**: `Admin` *(If you reset DB, it defaults to `adminpassword` via the seed script)*
+- **Password**: `Admin`
 
 *Note: There is no button on the homepage to access the Admin portal. You must navigate to the `/admin/login` URL manually.*
 
