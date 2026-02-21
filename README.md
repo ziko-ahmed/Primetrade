@@ -19,18 +19,18 @@ Primetrade was built to simplify team workflows using an intuitive interface. It
 Because Primetrade enforces strict role hierarchies, **the Admin portal is visually hidden from regular users** to prevent unauthorized access attempts.
 
 ### 1. Admin Portal
-- **URL**: [Your-Domain.com]`/admin/login`
+- **URL**: `https://primetrade-ua5d.onrender.com/admin/login`
 - **Email**: `admin@primetrade.com`
 - **Password**: `Admin` *(If you reset DB, it defaults to `adminpassword` via the seed script)*
 
 *Note: There is no button on the homepage to access the Admin portal. You must navigate to the `/admin/login` URL manually.*
 
 ### 2. User Portal
-- **URL**: [Your-Domain.com]`/user/login` or click "Sign In" on the homepage.
+- **URL**: `https://primetrade-ua5d.onrender.com/user/login` or click "Sign In" on the homepage.
 - **Test User**: You can sign up a brand new user via `/user/register` or create your own test account.
 
 ### 3. API Documentation
-- **URL**: [Your-Backend-Domain.com]`/api-docs`
+- **URL**: `https://primetrade-backend-zm28.onrender.com/api-docs`
 - Contains Swagger-generated documentation of all backend routes, schemas, and endpoints.
 
 ---
