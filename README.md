@@ -27,6 +27,16 @@ Because Primetrade enforces strict role hierarchies, **the Admin portal is visua
 
 ### 2. User Portal
 - **URL**: `https://primetrade-ua5d.onrender.com/user/login` or click "Sign In" on the homepage.
+*Below are some test users*
+- **Email**: `user1@primetrade.com`
+- **Password**: `User1`
+
+- **Email**: `user2@primetrade.com`
+- **Password**: `User2`
+
+- **Email**: `user3@primetrade.com`
+- **Password**: `User3`
+
 - **Test User**: You can sign up a brand new user via `/user/register` or create your own test account.
 
 ### 3. API Documentation
