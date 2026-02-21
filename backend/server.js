@@ -52,7 +52,7 @@ const swaggerOptions = {
         description: 'Development server',
       },
       {
-        url: process.env.VITE_API_URL || 'https://your-production-url.onrender.com', // Replace when deploying
+        url: process.env.VITE_API_URL || 'https://primetrade-backend-zm28.onrender.com',
         description: 'Production server',
       },
     ],
