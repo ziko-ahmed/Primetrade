@@ -55,7 +55,7 @@ const AdminAuth = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                             <button className="flip-card__btn w-full mt-4" type="submit" disabled={isLoading}>
-                                {isLoading ? <Loader2 className="w-5 h-5 mx-auto animate-spin text-white" /> : 'Authenticate'}
+                                {isLoading ? <Loader2 className="w-5 h-5 mx-auto animate-spin text-current" /> : 'Authenticate'}
                             </button>
                         </form>
                     </div>
