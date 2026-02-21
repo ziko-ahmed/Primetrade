@@ -18,12 +18,20 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'admin', 'superadmin'],
       default: 'user',
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Group',
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false,
     },
   },
   {

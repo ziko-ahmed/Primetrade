@@ -7,6 +7,10 @@ const taskSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Group',
+    },
     assignedTo: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

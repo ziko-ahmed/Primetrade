@@ -7,6 +7,7 @@ import api from '../utils/axios';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
+    const [groupInfo, setGroupInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -38,8 +39,18 @@ const AdminUsers = () => {
         }
     };
 
+    const fetchGroupInfo = async () => {
+        try {
+            const response = await api.get('/api/groups/my-group');
+            setGroupInfo(response.data);
+        } catch (error) {
+            // ignore
+        }
+    };
+
     useEffect(() => {
         fetchUsers();
+        fetchGroupInfo();
     }, []);
 
     const handleOpenModal = (user = null) => {
@@ -131,16 +142,37 @@ const AdminUsers = () => {
                         <button onClick={() => navigate('/admin/dashboard')} className="p-2 -ml-2 text-text-muted hover:text-primary-500 hover:bg-surface-hover rounded-xl transition-all" title="Back to Dashboard">
                             <ArrowLeft className="w-6 h-6" />
                         </button>
-                        <h1 className="text-3xl font-bold text-text-main">
+                        <h1 className="text-3xl font-bold text-text-main flex items-center gap-3">
                             User Management
+                            <span className="text-sm font-medium bg-primary-500/10 text-primary-500 px-3 py-1 rounded-full border border-primary-500/20">
+                                {users.length} Team Members
+                            </span>
                         </h1>
                     </div>
-                    <p className="text-text-muted">Manage all registered users, roles, and access.</p>
+                    <p className="text-text-muted">Manage all registered users in your workspace. Free plans are limited to 5 members.</p>
                 </div>
-                <button onClick={() => handleOpenModal()} className="btn-primary w-auto md:px-6 shadow-primary-500/25">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add User
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    {groupInfo?.joinCode && (
+                        <div className="bg-surface border border-border-main px-4 py-2 rounded-xl flex items-center gap-3">
+                            <span className="text-sm text-text-muted">Join Code:</span>
+                            <span className="font-mono font-bold text-primary-400 tracking-wider text-xl">{groupInfo.joinCode}</span>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(groupInfo.joinCode);
+                                    toast.success('Join Code copied!');
+                                }}
+                                className="p-1.5 hover:bg-surface-hover rounded text-text-muted hover:text-primary-400 transition-colors"
+                                title="Copy to clipboard"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </div>
+                    )}
+                    <button onClick={() => handleOpenModal()} className="btn-primary w-full sm:w-auto md:px-6 shadow-primary-500/25">
+                        <Plus className="w-5 h-5 mr-2" />
+                        Add User
+                    </button>
+                </div>
             </div>
 
             <div className="glass-card overflow-hidden">
@@ -263,8 +295,8 @@ const AdminUsers = () => {
                                     }}
                                     disabled={isSubmitting}
                                     className={`flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-white shadow-lg flex-1 transition-all ${confirmModal.isDestructive
-                                            ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20 hover:shadow-red-500/30'
-                                            : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20 hover:shadow-primary-500/30'
+                                        ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20 hover:shadow-red-500/30'
+                                        : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/20 hover:shadow-primary-500/30'
                                         }`}
                                 >
                                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm'}

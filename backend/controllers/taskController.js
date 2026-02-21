@@ -23,16 +23,22 @@ const logActivity = async (req, action, task, details) => {
 // @access  Private
 const getTasks = async (req, res) => {
   try {
-    let tasks;
-    if (req.user.role === 'admin') {
-      // Admin sees all tasks
-      tasks = await Task.find().populate('assignedTo', 'name email').populate('acceptedBy', 'name email');
+    let query = {};
+    if (req.user.role === 'superadmin') {
+      // Superadmin sees all tasks globally
+      query = {};
+    } else if (req.user.role === 'admin') {
+      // Group Admin sees all tasks in their group
+      query = { group: req.user.group };
     } else {
-      // User sees tasks assigned to them OR created by them
-      tasks = await Task.find({
+      // User sees tasks assigned to them OR created by them, inside their group
+      query = {
+        group: req.user.group,
         $or: [{ assignedTo: req.user.id }, { user: req.user.id }]
-      }).populate('assignedTo', 'name email').populate('acceptedBy', 'name email');
+      };
     }
+
+    const tasks = await Task.find(query).populate('assignedTo', 'name email').populate('acceptedBy', 'name email');
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -54,8 +60,13 @@ const setTask = async (req, res) => {
       assignedToArray = Array.isArray(req.body.assignedTo) ? req.body.assignedTo : [req.body.assignedTo];
     }
 
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
     const taskStatus = isAdmin ? (req.body.status || 'pending') : 'pending-approval';
+
+    let targetGroup = req.user.group;
+    if (req.user.role === 'superadmin' && req.body.group) {
+        targetGroup = req.body.group;
+    }
 
     const task = await Task.create({
       title: req.body.title,
@@ -64,6 +75,7 @@ const setTask = async (req, res) => {
       priority: req.body.priority || 'medium',
       assignedTo: isAdmin ? assignedToArray : [req.user.id],
       user: req.user.id, // creator
+      group: targetGroup, // Scoped to workspace/group
     });
 
     await task.populate('assignedTo', 'name email');
@@ -92,7 +104,6 @@ const updateTask = async (req, res) => {
       throw new Error('Task not found');
     }
 
-    // Check for user
     if (!req.user) {
       res.status(401);
       throw new Error('User not found');
@@ -106,32 +117,35 @@ const updateTask = async (req, res) => {
     }
 
     const isAssigned = task.assignedTo && task.assignedTo.some(id => id.toString() === req.user.id);
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
 
-    // Make sure the logged in user matches the task user OR task assignee OR user is admin
-    if (
-      task.user.toString() !== req.user.id &&
-      !isAssigned &&
-      req.user.role !== 'admin' &&
-      !isTakingInitiative
-    ) {
-      res.status(401);
-      throw new Error('User not authorized');
+    // Access Control: Superadmin is god. Admin must match group. User must match owner or assignee.
+    if (req.user.role !== 'superadmin') {
+      if (task.group && task.group.toString() !== req.user.group.toString()) {
+        res.status(403);
+        throw new Error('You cannot modify tasks outside your workspace');
+      }
+
+      if (task.user.toString() !== req.user.id && !isAssigned && req.user.role !== 'admin' && !isTakingInitiative) {
+        res.status(401);
+        throw new Error('User not authorized');
+      }
     }
 
     // Role Constraints
-    if (req.user.role !== 'admin') {
+    if (!isAdmin) {
       delete req.body.priority; // User Cannot Change Priority
     }
 
-    if (isTakingInitiative && req.user.role !== 'admin') {
+    if (isTakingInitiative && !isAdmin) {
       req.body.status = 'pending-approval';
     }
 
     // Build update object
     const updateOps = { $set: req.body };
 
-    // Auto-accept: if a non-admin user moves a task to in-progress or completed, add them to acceptedBy
-    if (req.user.role !== 'admin' && req.body.status && ['in-progress', 'completed'].includes(req.body.status)) {
+    // Auto-accept: if a non-admin user moves a task to in-progress or completed
+    if (!isAdmin && req.body.status && ['in-progress', 'completed'].includes(req.body.status)) {
       updateOps.$addToSet = { acceptedBy: req.user.id };
     }
 
@@ -162,16 +176,20 @@ const deleteTask = async (req, res) => {
       throw new Error('Task not found');
     }
 
-    // Check for user
     if (!req.user) {
       res.status(401);
       throw new Error('User not found');
     }
 
-    // Make sure user is admin (Constraint 2)
-    if (req.user.role !== 'admin') {
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+    if (!isAdmin) {
       res.status(401);
       throw new Error('Only Admins can delete tasks.');
+    }
+
+    if (req.user.role !== 'superadmin' && task.group && task.group.toString() !== req.user.group.toString()) {
+      res.status(403);
+      throw new Error('Cannot delete tasks outside your workspace');
     }
 
     const taskTitle = task.title;
@@ -193,15 +211,21 @@ const deleteTask = async (req, res) => {
 // @access  Private/Admin
 const getAnalytics = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       res.status(401);
       throw new Error('Not authorized');
     }
-    const totalTasks = await Task.countDocuments();
-    const completedTasks = await Task.countDocuments({ status: 'completed' });
-    const pendingTasks = await Task.countDocuments({ status: 'pending' });
-    const inProgressTasks = await Task.countDocuments({ status: 'in-progress' });
-    const pendingApprovalTasks = await Task.countDocuments({ status: 'pending-approval' });
+
+    let query = {};
+    if (req.user.role === 'admin') {
+      query.group = req.user.group;
+    }
+
+    const totalTasks = await Task.countDocuments(query);
+    const completedTasks = await Task.countDocuments({ ...query, status: 'completed' });
+    const pendingTasks = await Task.countDocuments({ ...query, status: 'pending' });
+    const inProgressTasks = await Task.countDocuments({ ...query, status: 'in-progress' });
+    const pendingApprovalTasks = await Task.countDocuments({ ...query, status: 'pending-approval' });
 
     res.status(200).json({
       totalTasks,
@@ -220,7 +244,7 @@ const getAnalytics = async (req, res) => {
 // @access  Private/Admin
 const approveAssignment = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       res.status(401);
       throw new Error('Not authorized');
     }
@@ -229,6 +253,11 @@ const approveAssignment = async (req, res) => {
     if (!task) {
       res.status(404);
       throw new Error('Task not found');
+    }
+
+    if (req.user.role !== 'superadmin' && task.group && task.group.toString() !== req.user.group.toString()) {
+      res.status(403);
+      throw new Error('Cannot approve tasks outside your workspace');
     }
 
     if (task.status !== 'pending-approval') {
@@ -263,25 +292,26 @@ const acceptTask = async (req, res) => {
       throw new Error('Task not found');
     }
 
-    // Check that user is assigned to this task
+    if (task.group && task.group.toString() !== req.user.group.toString() && req.user.role !== 'superadmin') {
+      res.status(403);
+      throw new Error('Cannot modify tasks outside your workspace');
+    }
+
     const isAssigned = task.assignedTo && task.assignedTo.some(id => id.toString() === req.user.id);
-    if (!isAssigned) {
+    if (!isAssigned && req.user.role !== 'superadmin') {
       res.status(401);
       throw new Error('You are not assigned to this task');
     }
 
-    // Check if already accepted
     const alreadyAccepted = task.acceptedBy && task.acceptedBy.some(id => id.toString() === req.user.id);
     if (alreadyAccepted) {
       res.status(400);
       throw new Error('You have already accepted this task');
     }
 
-    // Add user to acceptedBy
     task.acceptedBy = task.acceptedBy || [];
     task.acceptedBy.push(req.user.id);
 
-    // Only move to in-progress once ALL assigned users have accepted
     if (task.status === 'pending') {
       const allAssignedIds = task.assignedTo.map(id => id.toString());
       const allAcceptedIds = task.acceptedBy.map(id => id.toString());

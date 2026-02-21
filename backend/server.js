@@ -82,6 +82,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes'));
+app.use('/api/super-admin', require('./routes/superAdminRoutes'));
 
 // Health check endpoint for Cron jobs (Uptime monitoring)
 app.get('/health', (req, res) => {

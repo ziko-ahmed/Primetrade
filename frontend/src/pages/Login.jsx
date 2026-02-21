@@ -6,13 +6,15 @@ import toast from 'react-hot-toast';
 
 const Login = () => {
     const location = useLocation();
-    const isRegisterRoute = location.pathname === '/user/register';
+    const isRegisterRoute = location.pathname === '/register' || location.pathname === '/user/register';
     const [isRegister, setIsRegister] = useState(isRegisterRoute);
 
-    // Form State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [groupName, setGroupName] = useState('');
+    const [joinCode, setJoinCode] = useState('');
+    const [signupMode, setSignupMode] = useState('create'); // 'create' or 'join'
     const [isLoading, setIsLoading] = useState(false);
 
     const { login, register } = useAuth();
@@ -21,9 +23,15 @@ const Login = () => {
     const handleAuth = async (e) => {
         e.preventDefault();
 
-        if (isRegister && (!name || !email || !password)) {
-            toast.error('Please fill out all fields.');
-            return;
+        if (isRegister) {
+            if (signupMode === 'create' && (!name || !email || !password || !groupName)) {
+                toast.error('Please fill out all fields entirely.');
+                return;
+            }
+            if (signupMode === 'join' && (!name || !email || !password || !joinCode)) {
+                toast.error('Please fill out all fields including Join Code.');
+                return;
+            }
         }
         if (!isRegister && (!email || !password)) {
             toast.error('Please fill out all fields.');
@@ -38,8 +46,12 @@ const Login = () => {
                     setIsLoading(false);
                     return;
                 }
-                await register(name, email, password);
-                toast.success('Account created successfully!');
+
+                const actualGroupName = signupMode === 'create' ? groupName : undefined;
+                const actualJoinCode = signupMode === 'join' ? joinCode : undefined;
+
+                await register(name, email, password, actualGroupName, actualJoinCode);
+                toast.success(signupMode === 'create' ? 'Workspace created successfully!' : 'Joined workspace successfully!');
             } else {
                 await login(email, password);
                 toast.success('Successfully logged in!');
@@ -78,15 +90,54 @@ const Login = () => {
                     </div>
                     <form className="login-form space-y-4" onSubmit={handleAuth} noValidate>
                         {isRegister && (
-                            <div className="input-group w-full">
-                                <input
-                                    placeholder="Full Name"
-                                    className="login-input w-full"
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                />
-                            </div>
+                            <>
+                                <div className="flex gap-4 mb-6 justify-center w-full">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSignupMode('create')}
+                                        className={`flex-1 py-3 text-sm font-bold transition-all border-2 border-black ${signupMode === 'create' ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-gray-100'} rounded-none`}
+                                    >
+                                        Create Workspace
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSignupMode('join')}
+                                        className={`flex-1 py-3 text-sm font-bold transition-all border-2 border-black ${signupMode === 'join' ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-gray-100'} rounded-none`}
+                                    >
+                                        Join Workspace
+                                    </button>
+                                </div>
+                                <div className="input-group w-full">
+                                    <input
+                                        placeholder="Full Name"
+                                        className="login-input w-full"
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                    />
+                                </div>
+                                {signupMode === 'create' ? (
+                                    <div className="input-group w-full">
+                                        <input
+                                            placeholder="Company / Workspace Name"
+                                            className="login-input w-full"
+                                            type="text"
+                                            value={groupName}
+                                            onChange={(e) => setGroupName(e.target.value)}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="input-group w-full">
+                                        <input
+                                            placeholder="Join Code (Provided by your Admin)"
+                                            className="login-input w-full"
+                                            type="text"
+                                            value={joinCode}
+                                            onChange={(e) => setJoinCode(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
                         <div className="input-group w-full">
                             <input

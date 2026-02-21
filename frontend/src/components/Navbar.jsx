@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { LogOut, LayoutDashboard, UserCircle, Sun, Moon, Users } from 'lucide-react';
+import { LogOut, LayoutDashboard, UserCircle, Sun, Moon, Users, Shield } from 'lucide-react';
 import AnimatedButton from './AnimatedButton';
 
 const Navbar = () => {
@@ -11,7 +11,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/user/login');
+        navigate('/login');
     };
 
     return (
@@ -40,6 +40,11 @@ const Navbar = () => {
 
                     {user ? (
                         <>
+                            {user.role === 'superadmin' && (
+                                <Link to="/super-admin/dashboard" className="p-2 rounded-lg text-text-muted hover:text-emerald-500 hover:bg-surface transition-colors" title="Super Admin Dashboard">
+                                    <Shield className="w-5 h-5" />
+                                </Link>
+                            )}
                             {user.role === 'admin' && (
                                 <Link to="/admin/users" className="p-2 rounded-lg text-text-muted hover:text-primary-500 hover:bg-surface transition-colors" title="Manage Users">
                                     <Users className="w-5 h-5" />
@@ -58,10 +63,10 @@ const Navbar = () => {
                         </>
                     ) : (
                         <div className="flex gap-3">
-                            <Link to="/user/login" className="btn-secondary py-1.5 px-5 text-sm whitespace-nowrap">
+                            <Link to="/login" className="btn-secondary py-1.5 px-5 text-sm whitespace-nowrap">
                                 Log in
                             </Link>
-                            <Link to="/user/register" className="btn-primary py-1.5 px-5 text-sm !w-auto whitespace-nowrap">
+                            <Link to="/register" className="btn-primary py-1.5 px-5 text-sm !w-auto whitespace-nowrap">
                                 Sign up
                             </Link>
                         </div>

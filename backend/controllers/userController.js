@@ -1,12 +1,24 @@
 const User = require('../models/User');
+const Group = require('../models/Group');
 const bcrypt = require('bcryptjs');
+
+// Helper to check if user has access to target user
+const checkAccess = (reqUser, targetUser) => {
+  if (reqUser.role === 'superadmin') return true;
+  return targetUser.group && targetUser.group.toString() === reqUser.group.toString();
+};
 
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Admin Private
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    let query = {};
+    // Group Admins only see their group's users. Superadmins see all.
+    if (req.user.role !== 'superadmin') {
+      query.group = req.user.group;
+    }
+    const users = await User.find(query).select('-password');
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -30,11 +42,29 @@ const createUser = async (req, res) => {
       throw new Error('User already exists');
     }
 
+    // Check Group Limits if the creator is not a superadmin creating a loose user
+    let targetGroup = req.user.group;
+    if (req.user.role === 'superadmin' && req.body.group) {
+        targetGroup = req.body.group; // Allow superadmin to specify group, else their own group
+    }
+
+    if (targetGroup && req.user.role !== 'superadmin') {
+      const group = await Group.findById(targetGroup);
+      if (group && group.plan === 'free') {
+        const userCount = await User.countDocuments({ group: targetGroup });
+        if (userCount >= 5) {
+          res.status(403);
+          throw new Error('Member limit reached for Free Plan (5 max). Please upgrade to add more users.');
+        }
+      }
+    }
+
     const user = await User.create({
       name,
       email,
       password, // Pre-save hook hashes it
       role: role || 'user',
+      group: targetGroup,
     });
 
     res.status(201).json({
@@ -43,6 +73,7 @@ const createUser = async (req, res) => {
       email: user.email,
       role: user.role,
       isActive: user.isActive,
+      group: user.group,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -60,10 +91,15 @@ const updateUser = async (req, res) => {
       throw new Error('User not found');
     }
 
+    if (!checkAccess(req.user, user)) {
+      res.status(403);
+      throw new Error('Cannot edit users outside your workspace');
+    }
+
     // Prevent changing the main admin's email or role easily
-    if (user.email === 'admin@primetrade.com' && req.body.role === 'user') {
-       res.status(400);
-       throw new Error('Cannot demote the primary admin');
+    if (user.role === 'superadmin' && req.body.role && req.body.role !== 'superadmin' && req.user.role !== 'superadmin') {
+       res.status(403);
+       throw new Error('Cannot demote a superadmin');
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -93,9 +129,14 @@ const suspendUser = async (req, res) => {
       throw new Error('User not found');
     }
 
-    if (user.email === 'admin@primetrade.com') {
+    if (!checkAccess(req.user, user)) {
+      res.status(403);
+      throw new Error('Cannot edit users outside your workspace');
+    }
+
+    if (user.role === 'superadmin') {
         res.status(400);
-        throw new Error('Cannot suspend the primary admin account');
+        throw new Error('Cannot suspend a superadmin account');
     }
 
     user.isActive = !user.isActive;
@@ -122,9 +163,14 @@ const deleteUser = async (req, res) => {
       throw new Error('User not found');
     }
 
-    if (user.email === 'admin@primetrade.com') {
+    if (!checkAccess(req.user, user)) {
+      res.status(403);
+      throw new Error('Cannot delete users outside your workspace');
+    }
+
+    if (user.role === 'superadmin') {
       res.status(400);
-      throw new Error('Cannot delete the primary admin account');
+      throw new Error('Cannot delete a superadmin account');
     }
 
     await user.deleteOne();

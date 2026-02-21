@@ -54,7 +54,7 @@ const LandingPage = () => {
                     </motion.p>
 
                     <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto px-4 items-center">
-                        <Link to="/user/register" className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white transition-all duration-200 bg-primary-600 border border-transparent rounded-2xl hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600 overflow-hidden w-full sm:w-auto">
+                        <Link to="/register" className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white transition-all duration-200 bg-primary-600 border border-transparent rounded-2xl hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600 overflow-hidden w-full sm:w-auto">
                             <span className="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-56 group-hover:h-56 opacity-10"></span>
                             <span className="relative flex items-center gap-2">
                                 Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -62,11 +62,8 @@ const LandingPage = () => {
                         </Link>
 
                         <div className="flex gap-4 w-full sm:w-auto">
-                            <Link to="/user/login" className="flex-1 sm:flex-none inline-flex items-center justify-center px-8 py-4 text-base font-medium text-text-main transition-all duration-200 bg-surface border border-border-main rounded-2xl hover:bg-surface-hover hover:border-gray-400 dark:hover:border-gray-600 focus:outline-none">
+                            <Link to="/login" className="flex-1 sm:flex-none inline-flex items-center justify-center px-8 py-4 text-base font-medium text-text-main transition-all duration-200 bg-surface border border-border-main rounded-2xl hover:bg-surface-hover hover:border-gray-400 dark:hover:border-gray-600 focus:outline-none">
                                 Sign In
-                            </Link>
-                            <Link to="/admin/login" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-4 text-base font-medium text-text-muted transition-all duration-200 bg-transparent border border-transparent rounded-2xl hover:text-indigo-500 focus:outline-none group">
-                                <Lock className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" /> Admin
                             </Link>
                         </div>
                     </motion.div>
@@ -249,7 +246,7 @@ const LandingPage = () => {
                             <li className="flex items-center gap-3 text-text-main"><CheckCircle className="w-5 h-5 text-emerald-500" /> Basic Kanban boards</li>
                             <li className="flex items-center gap-3 text-text-main"><CheckCircle className="w-5 h-5 text-emerald-500" /> Community support</li>
                         </ul>
-                        <Link to="/user/register" className="btn-secondary w-full justify-center py-4 rounded-xl">Get Started</Link>
+                        <Link to="/register" className="btn-secondary w-full justify-center py-4 rounded-xl">Get Started</Link>
                     </motion.div>
 
                     {/* Pro Plan */}
@@ -273,7 +270,7 @@ const LandingPage = () => {
                             <li className="flex items-center gap-3 text-text-main"><CheckCircle className="w-5 h-5 text-primary-500" /> Real-time activity feeds</li>
                             <li className="flex items-center gap-3 text-text-main"><CheckCircle className="w-5 h-5 text-primary-500" /> Priority 24/7 support</li>
                         </ul>
-                        <Link to="/user/register" className="btn-primary w-full justify-center py-4 rounded-xl relative z-10">Start Free Trial</Link>
+                        <Link to="/register" className="btn-primary w-full justify-center py-4 rounded-xl relative z-10">Start Free Trial</Link>
                     </motion.div>
                 </div>
             </section>
@@ -324,10 +321,10 @@ const LandingPage = () => {
                     </div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row gap-4 w-full justify-center mt-6">
-                        <Link to="/user/register" className="btn-primary px-10 py-5 text-lg font-bold w-full sm:w-auto shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40 rounded-2xl hover:-translate-y-1 transition-all">
+                        <Link to="/register" className="btn-primary px-10 py-5 text-lg font-bold w-full sm:w-auto shadow-xl shadow-primary-500/20 hover:shadow-primary-500/40 rounded-2xl hover:-translate-y-1 transition-all">
                             Create Free Account <ArrowRight className="w-5 h-5 ml-2 inline" />
                         </Link>
-                        <Link to="/user/login" className="btn-secondary px-10 py-5 text-lg font-bold w-full sm:w-auto bg-surface/50 hover:bg-surface rounded-2xl border border-border-main hover:-translate-y-1 transition-all">
+                        <Link to="/login" className="btn-secondary px-10 py-5 text-lg font-bold w-full sm:w-auto bg-surface/50 hover:bg-surface rounded-2xl border border-border-main hover:-translate-y-1 transition-all">
                             Sign In
                         </Link>
                     </div>
@@ -346,9 +343,8 @@ const LandingPage = () => {
 
                     <div className="flex gap-8 text-sm font-medium text-text-muted">
                         <Link to="/" className="hover:text-text-main transition-colors">Home</Link>
-                        <Link to="/user/login" className="hover:text-text-main transition-colors">Login</Link>
-                        <Link to="/user/register" className="hover:text-text-main transition-colors">Sign Up</Link>
-                        <Link to="/admin/login" className="hover:text-indigo-500 transition-colors">Admin Portal</Link>
+                        <Link to="/login" className="hover:text-text-main transition-colors">Login</Link>
+                        <Link to="/register" className="hover:text-text-main transition-colors">Sign Up</Link>
                     </div>
 
                     <div className="text-sm text-text-muted/60">

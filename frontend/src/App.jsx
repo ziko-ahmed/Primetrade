@@ -1,18 +1,20 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import AnnouncementBanner from './components/AnnouncementBanner';
 import Login from './pages/Login';
-import AdminAuth from './pages/AdminAuth';
 import Dashboard from './pages/Dashboard';
 import AdminUsers from './pages/AdminUsers';
 import LandingPage from './pages/LandingPage';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 // Protected User Route
 const ProtectedUserRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user) return <Navigate to="/user/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+  if (user.role === 'superadmin') return <Navigate to="/super-admin/dashboard" replace />;
   return children;
 };
 
@@ -20,8 +22,8 @@ const ProtectedUserRoute = ({ children }) => {
 const ProtectedAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role !== 'admin') return <Navigate to="/user/dashboard" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'user') return <Navigate to="/user/dashboard" replace />;
   return children;
 };
 
@@ -30,7 +32,9 @@ const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) {
-    return <Navigate to={user.role === 'admin' ? "/admin/dashboard" : "/user/dashboard"} replace />;
+    if (user.role === 'superadmin') return <Navigate to="/super-admin/dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/user/dashboard" replace />;
   }
   return children;
 };
@@ -38,6 +42,7 @@ const PublicRoute = ({ children }) => {
 function App() {
   return (
     <div className="min-h-screen bg-background text-text-main flex flex-col">
+      <AnnouncementBanner />
       <Navbar />
       <main className="flex-1 w-full relative">
         <Routes>
@@ -47,21 +52,15 @@ function App() {
             </PublicRoute>
           } />
 
-          <Route path="/user/login" element={
+          <Route path="/login" element={
             <PublicRoute>
               <Login />
             </PublicRoute>
           } />
 
-          <Route path="/user/register" element={
+          <Route path="/register" element={
             <PublicRoute>
               <Login />
-            </PublicRoute>
-          } />
-
-          <Route path="/admin/login" element={
-            <PublicRoute>
-              <AdminAuth />
             </PublicRoute>
           } />
 
@@ -83,9 +82,16 @@ function App() {
             </ProtectedAdminRoute>
           } />
 
+          <Route path="/super-admin/dashboard" element={
+            <ProtectedAdminRoute>
+              <SuperAdminDashboard />
+            </ProtectedAdminRoute>
+          } />
+
           {/* Catch-all redirects for old URLs */}
-          <Route path="/login" element={<Navigate to="/user/login" replace />} />
-          <Route path="/register" element={<Navigate to="/user/register" replace />} />
+          <Route path="/user/login" element={<Navigate to="/login" replace />} />
+          <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+          <Route path="/user/register" element={<Navigate to="/register" replace />} />
           <Route path="/dashboard" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

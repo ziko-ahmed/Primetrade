@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -8,12 +9,14 @@ const generateToken = (id) => {
   });
 };
 
+const Group = require('../models/Group');
+
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, groupName, joinCode } = req.body;
 
     if (!name || !email || !password) {
       res.status(400);
@@ -27,13 +30,70 @@ const registerUser = async (req, res) => {
       throw new Error('User already exists');
     }
 
-    // Create user
+    if (joinCode) {
+        // Look up group by join code
+        const group = await Group.findOne({ joinCode: joinCode.toUpperCase() });
+        if (!group) {
+            res.status(404);
+            throw new Error('Invalid Join Code');
+        }
+
+        // Check plan limits
+        if (group.plan === 'free') {
+            const userCount = await User.countDocuments({ group: group._id });
+            if (userCount >= 5) {
+                res.status(403);
+                throw new Error('This workspace has reached its member limit (5).');
+            }
+        }
+
+        // Create standard user
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role: 'user',
+            group: group._id
+        });
+
+        res.status(201).json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            group: user.group,
+            token: generateToken(user._id),
+        });
+        return;
+    }
+
+    if (!groupName) {
+        res.status(400);
+        throw new Error('Please provide a Workspace Name or a Join Code');
+    }
+
+    // Create user (temporarily without group)
     const user = await User.create({
       name,
       email,
       password,
-      role: role || 'user',
+      role: 'admin', // First user of a new group is an admin
     });
+
+    const newJoinCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+    // Create a group for this user
+    const finalGroupName = groupName || `${name}'s Workspace`;
+    const group = await Group.create({
+      name: finalGroupName,
+      plan: 'free',
+      owner: user._id,
+      joinCode: newJoinCode
+    });
+
+    // Assign group to user
+    user.group = group._id;
+    await user.save();
 
     if (user) {
       res.status(201).json({
@@ -41,6 +101,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        group: user.group,
         token: generateToken(user._id),
       });
     } else {
